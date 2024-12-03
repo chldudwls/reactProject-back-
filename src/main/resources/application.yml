@@ -39,6 +39,16 @@ spring:
     default-encoding: UTF-8
 
 
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+file:
+  upload:
+    path: upload
+
 jwt:
     issuer: chhak0503@gmail.com
     secret: Tz6W1F4Cl4Yl2GyyRjJ5C4v7KRMCA4z4
+
+
