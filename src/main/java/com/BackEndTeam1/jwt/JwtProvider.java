@@ -1,10 +1,11 @@
 package com.BackEndTeam1.jwt;
 
-import com.BackEndTeam1.entity.User;
+import com.lotte2backteam1.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
+@Log4j2
 @Getter
 @Component
 public class JwtProvider {
@@ -44,16 +45,17 @@ public class JwtProvider {
                 .issuer(issuer)
                 .issuedAt(issuedDate)
                 .expiration(expireDate)
-                .claim("username", user.getUsername())
+                .claim("username", user.getUid())
                 .claim("role", user.getRole())
                 .signWith(this.secretKey, Jwts.SIG.HS256)
                 .compact();
-
+        log.info("토큰 : " + token);
         return token;
     }
 
     // 토큰으로부터 클레임 추출
     public Claims getClaims(String token) {
+        log.info("token4" + token);
         return Jwts
                 .parser()
                 .verifyWith(this.secretKey)
@@ -63,18 +65,18 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        
+
         // 토큰으로 부터 사용자 정보 가져오기
         Claims claims = getClaims(token);
         String username = claims.get("username", String.class);
         String role = claims.get("role", String.class);
-        
+
         // User 엔티티 생성
         User user = User
-                    .builder()
-                    .username(username)
-                    .role(role)
-                    .build();
+                .builder()
+                .uid(username)
+                .role(role)
+                .build();
 
         // 사용자 권한 목록
         List<GrantedAuthority> authorities = new ArrayList<>();
@@ -88,11 +90,11 @@ public class JwtProvider {
         try{
             // 토큰 검사(유효성, 만료일)
             Jwts
-                .parser()
-                .verifyWith(this.secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                    .parser()
+                    .verifyWith(this.secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
         }catch (Exception e){
             // 토큰에 문제가 있을 경우 예외 넘기기
